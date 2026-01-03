@@ -15,12 +15,26 @@ KERNELS_DIR="$ROOT/kernels"
 KERNELS_BUILD="$KERNELS_DIR/build"
 TENSOR_DIR="$ROOT/tensor"
 
+MLIR_DIR="/home/blubridge-038/Desktop/llvm-project/build/lib/cmake/mlir"
+LLVM_DIR="/home/blubridge-038/Desktop/llvm-project/build/lib/cmake/llvm"
+NOVA_BUILD_DIR="$ROOT/Nova-Compiler/build"
+
 echo "== Build Type:    $BUILD_TYPE"
 echo "== Using CUDA CXX: $(which nvcc)"
 
 # --- Incremental Build (default) ---
 # To force a clean rebuild, run: rm -rf cgadimpl/build kernels/build tensor/lib
 # This script now does incremental builds by default for faster compilation
+
+# =========================================================================
+# ====> STEP 0: BUILD NOVA-COMPILER (SUBMODULE) <====
+# =========================================================================
+echo "== Building Nova-Compiler"
+mkdir -p "$NOVA_BUILD_DIR"
+cd "$NOVA_BUILD_DIR"
+cmake .. -DMLIR_DIR="$MLIR_DIR" -DLLVM_DIR="$LLVM_DIR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+make -j$(nproc)
+cd "${ROOT}"
 
 # =========================================================================
 # ====> STEP 1: BUILD THE TENSOR LIBRARY (INCREMENTAL) <====
@@ -32,7 +46,11 @@ cd "${ROOT}"
 
 # --- STEP 2: Configure and build the core cgadimpl library ---
 echo "== Configuring core"
-cmake -S "$CGADIMPL_DIR" -B "$CGADIMPL_BUILD" -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
+cmake -S "$CGADIMPL_DIR" -B "$CGADIMPL_BUILD" \
+  -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+  -DMLIR_DIR="$MLIR_DIR" \
+  -DLLVM_DIR="$LLVM_DIR" \
+  -Dmlir-compiler_DIR="$NOVA_BUILD_DIR"
 
 echo "== Building core"
 cmake --build "$CGADIMPL_BUILD" -- -j$(nproc)
