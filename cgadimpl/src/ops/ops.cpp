@@ -383,7 +383,7 @@ Tensor forward_eval_node(const std::shared_ptr<Node> &node) {
         // }
         case Op::Tanh: {
             const Tensor &X = node->inputs[0]->value;
-            return tanh(X);
+            return trig::tanh(X);
         }
         case Op::Exp: {
             const Tensor &X = node->inputs[0]->value;

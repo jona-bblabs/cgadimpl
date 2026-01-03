@@ -4,6 +4,7 @@
 #include "ad/detail/autodiff_ops.hpp"
 #include <stdexcept> // Required for std::runtime_error
 #include "ad/runtime/runtime.hpp"
+#include "ops/UnaryOps/Trigonometry.h"
 
 namespace ag {
 namespace detail{
@@ -130,7 +131,7 @@ Tensor jvp_GELU(Node* n, const std::function<const Tensor&(Node*)>& t){
     Tensor x2 = x * x;
     Tensor x3 = x2 * x;
     Tensor u = (x + x3 * c2) * c1;
-    Tensor th_u = OwnTensor::tanh(u);
+    Tensor th_u = OwnTensor::trig::tanh(u);
     
     // Compute du/dx = c1 * (1 + 3 * c2 * x^2)
     Tensor du_dx = (1.0f + (x2 * (3.0f * c2))) * c1;
@@ -265,7 +266,7 @@ Tensor jvp_Relumask(Node* n, const std::function<const Tensor&(Node*)>& t){
 // ===================================================================
 Tensor jvp_Cosh(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
-    return T(t, X) * OwnTensor::sinh(X->value);
+    return T(t, X) * OwnTensor::trig::sinh(X->value);
 }
 
 // ===================================================================
@@ -273,7 +274,7 @@ Tensor jvp_Cosh(Node* n, const std::function<const Tensor&(Node*)>& t){
 // ===================================================================
 Tensor jvp_Sinh(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
-    return T(t, X) * OwnTensor::cosh(X->value);
+    return T(t, X) * OwnTensor::trig::cosh(X->value);
 }
 
 // ===================================================================
@@ -281,7 +282,7 @@ Tensor jvp_Sinh(Node* n, const std::function<const Tensor&(Node*)>& t){
 // ===================================================================
 Tensor jvp_Cos(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
-    return T(t, X) * -1.0f * OwnTensor::sin(X->value);
+    return T(t, X) * -1.0f * OwnTensor::trig::sin(X->value);
 }
 
 // ===================================================================
@@ -289,7 +290,7 @@ Tensor jvp_Cos(Node* n, const std::function<const Tensor&(Node*)>& t){
 // ===================================================================
 Tensor jvp_Sin(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
-    return T(t, X) * OwnTensor::cos(X->value);
+    return T(t, X) * OwnTensor::trig::cos(X->value);
 }
 
 // ===================================================================
@@ -297,7 +298,7 @@ Tensor jvp_Sin(Node* n, const std::function<const Tensor&(Node*)>& t){
 // ===================================================================
 Tensor jvp_Tan(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
-    Tensor cos_x = OwnTensor::cos(X->value);
+    Tensor cos_x = OwnTensor::trig::cos(X->value);
     // JVP is tangent(x) * (1/cos(x)^2)
     return T(t, X) * (1.0f / (cos_x * cos_x));
 }
@@ -396,7 +397,7 @@ Tensor jvp_MAELoss(Node* n, const std::function<const Tensor&(Node*)>& t){
 // ===================================================================
 Tensor jvp_GCU(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
-    return T(t, X) * (OwnTensor::cos(X->value) - X->value * OwnTensor::sin(X->value));
+    return T(t, X) * (OwnTensor::trig::cos(X->value) - X->value * OwnTensor::trig::sin(X->value));
 }
 
 // ===================================================================
@@ -414,8 +415,8 @@ Tensor jvp_LiSHT(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
     const Tensor& x_val = X->value;
 
-    Tensor th_x = OwnTensor::tanh(x_val);
-    Tensor ch_x = OwnTensor::cosh(x_val);
+    Tensor th_x = OwnTensor::trig::tanh(x_val);
+    Tensor ch_x = OwnTensor::trig::cosh(x_val);
     Tensor sech_x_sq = 1.0f / (ch_x * ch_x);
     
     Tensor d_lisht = th_x + x_val * sech_x_sq;
@@ -444,7 +445,7 @@ Tensor jvp_Mish(Node* n, const std::function<const Tensor&(Node*)>& t){
 
     // Re-calculate intermediates needed for the derivative
     Tensor sp = OwnTensor::log(1.0f + OwnTensor::exp(x));
-    Tensor tanh_sp = OwnTensor::tanh(sp);
+    Tensor tanh_sp = OwnTensor::trig::tanh(sp);
     Tensor sig_x = 1.0f / (1.0f + OwnTensor::exp(x * -1.0f));
 
     // The derivative of mish

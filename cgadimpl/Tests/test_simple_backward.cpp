@@ -4,8 +4,8 @@ using namespace ag;
 
 int main() {
     std::cout << "Creating tensors..." << std::endl;
-    Tensor A_tensor = Tensor::randn(Shape{{2, 2}}, TensorOptions().with_req_grad(true));
-    Tensor B_tensor = Tensor::randn(Shape{{2, 2}}, TensorOptions().with_req_grad(true));
+    Tensor A_tensor = Tensor::randn<float>(Shape{{2, 2}}, TensorOptions().with_req_grad(true));
+    Tensor B_tensor = Tensor::randn<float>(Shape{{2, 2}}, TensorOptions().with_req_grad(true));
     
     auto a = make_tensor(A_tensor, "A");
     auto b = make_tensor(B_tensor, "B");

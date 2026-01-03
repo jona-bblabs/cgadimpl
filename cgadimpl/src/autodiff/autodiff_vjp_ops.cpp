@@ -4,6 +4,7 @@
 
 #include "ad/detail/autodiff_ops.hpp"
 #include "ad/runtime/runtime.hpp"
+#include "ops/UnaryOps/Trigonometry.h"
 #include <cmath>
 #include <stdexcept> // Required for std::runtime_error
 
@@ -396,7 +397,7 @@ void vjp_GCU(Node* n, const Tensor& gy){
 
     // VJP is gy * (cos(x) - x * sin(x))
     // All ops are from OwnTensor and are stream-aware.
-    Tensor d_gcu = OwnTensor::cos(X->value) - (X->value * OwnTensor::sin(X->value));
+    Tensor d_gcu = OwnTensor::trig::cos(X->value) - (X->value * OwnTensor::trig::sin(X->value));
     if (X->requires_grad()){
         std::lock_guard<std::mutex> lock(X->grad_mutex);
         X->grad+= gy * d_gcu;
@@ -413,7 +414,7 @@ void vjp_Mish(Node* n, const Tensor& gy){
     // Re-calculate intermediates needed for the derivative
     // softplus(x) = log(1 + exp(x))
     Tensor sp = OwnTensor::log(1.0f + OwnTensor::exp(X->value));
-    Tensor tanh_sp = OwnTensor::tanh(sp);
+    Tensor tanh_sp = OwnTensor::trig::tanh(sp);
     
     // sigmoid(x) = 1 / (1 + exp(-x))
     Tensor sig_x = 1.0f / (1.0f + OwnTensor::exp(X->value * -1.0f));
@@ -548,7 +549,7 @@ void vjp_LiSHT(Node* n, const Tensor& gy){
     if (!X->requires_grad()) return;
 
     // Recompute tanh(x)
-    Tensor th_x = OwnTensor::tanh(X->value);
+    Tensor th_x = OwnTensor::trig::tanh(X->value);
     
     // Derivative is tanh(x) + x * sech(x)^2, which is tanh(x) + x * (1 - tanh(x)^2)
     Tensor d_lisht = th_x + X->value * (1.0f - (th_x * th_x));
@@ -574,7 +575,7 @@ void vjp_GELU(Node* n, const Tensor& gy){
     Tensor x2 = x * x;
     Tensor x3 = x2 * x;
     Tensor u = (x + x3 * c2) * c1;
-    Tensor th_u = OwnTensor::tanh(u);
+    Tensor th_u = OwnTensor::trig::tanh(u);
     
     // Compute du/dx = c1 * (1 + 3 * c2 * x^2)
     Tensor du_dx = (1.0f + (x2 * (3.0f * c2))) * c1;
@@ -656,7 +657,7 @@ void vjp_Dyntanh(Node* n, const Tensor& gy){
     
     // The tape stores h = a*x from the forward pass.
     const Tensor& h = *(n->tape.back());
-    Tensor th_h = OwnTensor::tanh(h);
+    Tensor th_h = OwnTensor::trig::tanh(h);
     
     // Derivative of tanh(h) is 1 - tanh(h)^2
     Tensor d_tanh = 1.0f - (th_h * th_h);
@@ -920,7 +921,7 @@ void vjp_Cosh(Node* n, const Tensor& gy){
     // VJP is gy * sinh(x)
     if(X->requires_grad()){
         std::lock_guard<std::mutex> lock(X->grad_mutex);
-        X->grad += gy * OwnTensor::sinh(X->value);}
+        X->grad += gy * OwnTensor::trig::sinh(X->value);}
 }
 
 // ===================================================================
@@ -933,7 +934,7 @@ void vjp_Sinh(Node* n, const Tensor& gy){
     // VJP is gy * cosh(x)
     if(X->requires_grad()){
         std::lock_guard<std::mutex> lock(X->grad_mutex);
-        X->grad += gy * OwnTensor::cosh(X->value);
+        X->grad += gy * OwnTensor::trig::cosh(X->value);
     }
 }
 
@@ -962,7 +963,7 @@ void vjp_Cos(Node* n, const Tensor& gy){
     // VJP is gy * -sin(x)
     if(X->requires_grad()){
         std::lock_guard<std::mutex> lock(X->grad_mutex);
-        X->grad += gy * -1.0f * OwnTensor::sin(X->value);
+        X->grad += gy * -1.0f * OwnTensor::trig::sin(X->value);
     }
 }
 
@@ -976,7 +977,7 @@ void vjp_Sin(Node* n, const Tensor& gy){
     // VJP is gy * cos(x)
     if(X->requires_grad()){
         std::lock_guard<std::mutex> lock(X->grad_mutex);
-        X->grad += gy * OwnTensor::cos(X->value);
+        X->grad += gy * OwnTensor::trig::cos(X->value);
     }
 }
 // ===================================================================
@@ -989,7 +990,7 @@ void vjp_Tan(Node* n, const Tensor& gy){
     // VJP is gy * (1/cos(x)*1/cos(x))
     if (X->requires_grad()){
         std::lock_guard<std::mutex> lock(X->grad_mutex);
-        X->grad += gy * ((1/OwnTensor::cos(X->value)) * (1/OwnTensor::cos(X->value)));
+        X->grad += gy * ((1/OwnTensor::trig::cos(X->value)) * (1/OwnTensor::trig::cos(X->value)));
     }
 }
 

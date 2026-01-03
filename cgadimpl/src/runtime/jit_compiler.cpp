@@ -1,6 +1,7 @@
 #include "ad/runtime/jit_compiler.hpp"
 #include "ad/ops/nodeops.hpp" 
 #include "TensorLib.h"
+#include "ops/UnaryOps/Trigonometry.h"
 #include "ad/core/mlir_emitter.hpp"
 #include "Compiler/API/NovaCompilerAPI.h"
 #include "mlir/IR/BuiltinOps.h"
@@ -49,7 +50,7 @@ struct Compiled::Impl {
             case Op::Relu:     { cudaStream_t stream = (cudaStream_t)ag::current_stream(); return (*a[0] + OwnTensor::abs(*a[0], stream)) * 0.5f;}
             case Op::Exp:        return OwnTensor::exp(*a[0]);
             case Op::Log:        return OwnTensor::log(*a[0]);
-            case Op::Tanh:       return OwnTensor::tanh(*a[0]);
+            case Op::Tanh:       return OwnTensor::trig::tanh(*a[0]);
             
             case Op::MatMul:     return OwnTensor::matmul(*a[0], *a[1]);
 

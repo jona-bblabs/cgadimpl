@@ -7,8 +7,8 @@ int main() {
     std::cout << "=== Testing backward with enable_parallel flag ===" << std::endl;
     
     // Create a simple graph
-    Tensor A = Tensor::randn(Shape{{3, 3}}, TensorOptions().with_req_grad(true));
-    Tensor B = Tensor::randn(Shape{{3, 3}}, TensorOptions().with_req_grad(true));
+    Tensor A = Tensor::randn<float>(Shape{{3, 3}}, TensorOptions().with_req_grad(true));
+    Tensor B = Tensor::randn<float>(Shape{{3, 3}}, TensorOptions().with_req_grad(true));
     
     auto a = make_tensor(A, "A");
     auto b = make_tensor(B, "B");

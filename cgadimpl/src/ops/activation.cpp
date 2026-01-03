@@ -6,6 +6,7 @@
 // #include "ad/ops/kernels_api.hpp"
 #include <cuda_runtime.h>
 #include "tensor.hpp" 
+#include "ops/UnaryOps/Trigonometry.h" 
 #include <unordered_map>
 #include <cmath> 
 #include <type_traits> 
@@ -482,7 +483,7 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
 // ===================================================================
 
     std::shared_ptr<Node> cosh_nodeops(const std::shared_ptr<Node>& x){
-        Tensor y = cosh(x->value);
+        Tensor y = OwnTensor::trig::cosh(x->value);
         auto n=std::make_shared<Node>(y, Op::Cosh, x->requires_grad(), "cosh");
         n->inputs={x};
 
@@ -498,7 +499,7 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
 // ===================================================================
 
      std::shared_ptr<Node> sinh_nodeops(const std::shared_ptr<Node>& x){
-        Tensor y = sinh(x->value);
+        Tensor y = OwnTensor::trig::sinh(x->value);
         auto n=std::make_shared<Node>(y, Op::Sinh, x->requires_grad(), "sinh");
         n->inputs={x};
 
@@ -515,7 +516,7 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
 
 
      std::shared_ptr<Node> cos_nodeops(const std::shared_ptr<Node>& x){
-        Tensor y = cos(x->value);
+        Tensor y = OwnTensor::trig::cos(x->value);
         auto n=std::make_shared<Node>(y, Op::Cos, x->requires_grad(), "cosh");
         n->inputs={x};
 
@@ -531,7 +532,7 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
 // ===================================================================
 
      std::shared_ptr<Node> sin_nodeops(const std::shared_ptr<Node>& x){
-        Tensor y = sin(x->value);
+        Tensor y = OwnTensor::trig::sin(x->value);
         auto n=std::make_shared<Node>(y, Op::Sin, x->requires_grad(), "sinh");
         n->inputs={x};
 
@@ -752,7 +753,7 @@ std::shared_ptr<Node> mish_nodeops(const std::shared_ptr<Node>& x){
     Tensor sp = OwnTensor::log(1.0f + OwnTensor::exp(x->value));
 
     // mish(x) = x * tanh(softplus(x))
-    Tensor y = x->value * OwnTensor::tanh(sp);
+    Tensor y = x->value * OwnTensor::trig::tanh(sp);
     
     auto n = std::make_shared<Node>(y, Op::Mish, x->requires_grad(), "mish");
     n->inputs = {x};
@@ -774,7 +775,7 @@ std::shared_ptr<Node> mish_nodeops(const std::shared_ptr<Node>& x){
     //  - Call the appropriate backend (CPU or CUDA kernel).
     //  - Get the current stream from the context if it's on the GPU.
     //  - Queue the operation asynchronously on that stream.
-    Tensor y = OwnTensor::tanh(x->value);
+    Tensor y = OwnTensor::trig::tanh(x->value);
 
     // 2. Wrap the result in a new Node using the correct constructor.
     auto n = std::make_shared<Node>(y, Op::Tanh, x->requires_grad(), "tanh");
@@ -891,7 +892,7 @@ std::shared_ptr<Node> gelu_nodeops(const std::shared_ptr<Node>& x){
     Tensor u = (x->value + x3 * c2) * c1;
 
     // 3. Calculate the full GELU formula: 0.5 * x * (1 + tanh(u))
-    Tensor y = x->value * (1.0f + OwnTensor::tanh(u)) * 0.5f;
+    Tensor y = x->value * (1.0f + OwnTensor::trig::tanh(u)) * 0.5f;
     
     auto n = std::make_shared<Node>(y, Op::GELU, x->requires_grad(), "gelu");
     n->inputs={x};
@@ -906,7 +907,7 @@ std::shared_ptr<Node> gelu_nodeops(const std::shared_ptr<Node>& x){
 // gcu_nodeops
 // ===================================================================
 std::shared_ptr<Node> gcu_nodeops(const std::shared_ptr<Node>& x){
-    Tensor y = x->value * OwnTensor::cos(x->value);
+    Tensor y = x->value * OwnTensor::trig::cos(x->value);
 
     auto n = std::make_shared<Node>(y, Op::GCU, x->requires_grad(), "gcu");
     n->inputs={x};
@@ -963,7 +964,7 @@ std::shared_ptr<Node> parcon_nodeops(const std::shared_ptr<Node>& x){
 
 std::shared_ptr<Node> lisht_nodeops(const std::shared_ptr<Node>& x){
     // All ops are stream-aware via context
-    Tensor y = x->value * OwnTensor::tanh(x->value);
+    Tensor y = x->value * OwnTensor::trig::tanh(x->value);
 
     // FIX: The Op type was incorrect in your original code.
     auto n = std::make_shared<Node>(y, Op::LiSHT, x->requires_grad(), "lisht"); 
@@ -1217,7 +1218,7 @@ std::shared_ptr<Node> dyntanh_nodeops(const std::shared_ptr<Node>& x, float& a_v
     G = std::make_shared<Node>(Tensor::full(Shape{{1}}, TensorOptions().with_req_grad(true), g_val), Op::Leaf, "dyn_g");
     
     Tensor h = x->value * A->value;
-    Tensor y = OwnTensor::tanh(h) * G->value + B->value;
+    Tensor y = OwnTensor::trig::tanh(h) * G->value + B->value;
     
     // Note: The Op was incorrectly MeanAll in your old code. Let's assume it should be Dyntanh.
     auto n = std::make_shared<Node>(y, Op::Dyntanh, x->requires_grad(), "dyntanh");

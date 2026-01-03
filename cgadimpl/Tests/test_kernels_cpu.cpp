@@ -37,7 +37,7 @@ void test_cpu_relu() {
 
     // Use the modern API to create a CPU tensor from the correct namespace
     auto opts = TensorOptions().with_device(Device::CPU);
-    Tensor x = Tensor::randn(Shape{{4, 4}}, opts);
+    Tensor x = Tensor::randn<float>(Shape{{4, 4}}, opts);
     
     float* x_data = x.data<float>();
     x_data[0] = -5.0f;
@@ -59,8 +59,8 @@ void test_cpu_matmul() {
     assert(K.matmul != nullptr);
     
     auto opts = TensorOptions().with_device(Device::CPU);
-    Tensor a = Tensor::randn(Shape{{8, 16}}, opts);
-    Tensor b = Tensor::randn(Shape{{16, 8}}, opts);
+    Tensor a = Tensor::randn<float>(Shape{{8, 16}}, opts);
+    Tensor b = Tensor::randn<float>(Shape{{16, 8}}, opts);
 
     // Use the underlying OwnTensor::matmul for the reference calculation
     Tensor c_ref = OwnTensor::matmul(a, b);

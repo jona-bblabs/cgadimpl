@@ -109,12 +109,12 @@ void test_large_model_training() {
 
     // --- 2. Create Synthetic Data ---
     // --- 2. Create Synthetic Data ---
-    Tensor x_data = Tensor::randn(Shape{{batch_size, features}}, TensorOptions().with_device(dev));
+    Tensor x_data = Tensor::randn<float>(Shape{{batch_size, features}}, TensorOptions().with_device(dev));
     
     // --- FIX START ---
     
     // Create the initial logits as a raw Tensor.
-    Tensor y_target_logits = Tensor::rand(Shape{{batch_size, num_classes}}, TensorOptions().with_device(dev));
+    Tensor y_target_logits = Tensor::rand<float>(Shape{{batch_size, num_classes}}, TensorOptions().with_device(dev));
 
     // 1. Wrap the raw Tensor in a Value to use graph operations.
     Value y_target_logits_val = make_tensor(y_target_logits);

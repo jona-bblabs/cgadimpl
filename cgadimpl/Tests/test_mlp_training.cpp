@@ -46,7 +46,7 @@
 
 //         // --- FIX #3: Use ag::Device for options ---
 //         auto cpu_opts = OwnTensor::TensorOptions().with_device(Device::CPU);
-//         ag::Value input = ag::make_tensor(OwnTensor::Tensor::randn(OwnTensor::Shape{{8, 10}}, cpu_opts), "input");
+//         ag::Value input = ag::make_tensor(OwnTensor::Tensor::randn<float>(OwnTensor::Shape{{8, 10}}, cpu_opts), "input");
 //         ag::Value labels = ag::make_tensor(OwnTensor::Tensor::zeros(OwnTensor::Shape{{8, 5}}, cpu_opts), "labels");
         
 //         model_cpu.zero_grad();
@@ -93,7 +93,7 @@
 //         std::cout << "GPU Model created successfully.\n";
         
 //         auto gpu_opts = OwnTensor::TensorOptions().with_device(Device::CUDA);
-//         ag::Value input_gpu = ag::make_tensor(OwnTensor::Tensor::randn(OwnTensor::Shape{{8, 10}}, gpu_opts), "input_gpu");
+//         ag::Value input_gpu = ag::make_tensor(OwnTensor::Tensor::randn<float>(OwnTensor::Shape{{8, 10}}, gpu_opts), "input_gpu");
 //         ag::Value labels_gpu = ag::make_tensor(OwnTensor::Tensor::zeros(OwnTensor::Shape{{8, 5}}, gpu_opts), "labels_gpu");
         
 //         ag::Value loss_gpu = ag::mse_loss(model_gpu(input_gpu), labels_gpu);
@@ -141,7 +141,7 @@ int main() {
         std::cout << "CPU Model created successfully.\n";
 
         auto cpu_opts = OwnTensor::TensorOptions().with_device(Device::CPU);
-        ag::Value input = ag::make_tensor(OwnTensor::Tensor::randn(OwnTensor::Shape{{batch_size, in_features}}, cpu_opts), "input");
+        ag::Value input = ag::make_tensor(OwnTensor::Tensor::randn<float>(OwnTensor::Shape{{batch_size, in_features}}, cpu_opts), "input");
         ag::Value labels = ag::make_tensor(OwnTensor::Tensor::zeros(OwnTensor::Shape{{batch_size, out_features}}, cpu_opts), "labels");
         
         // --- Initial Pass ---

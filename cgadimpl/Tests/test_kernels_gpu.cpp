@@ -39,8 +39,8 @@ void test_gpu_add() {
     auto cpu_opts = TensorOptions().with_device(Device::CPU);
     auto gpu_opts = TensorOptions().with_device(DeviceIndex(Device::CUDA));
 
-    Tensor a_cpu = Tensor::randn(Shape{{8, 8}}, cpu_opts);
-    Tensor b_cpu = Tensor::randn(Shape{{8, 8}}, cpu_opts);
+    Tensor a_cpu = Tensor::randn<float>(Shape{{8, 8}}, cpu_opts);
+    Tensor b_cpu = Tensor::randn<float>(Shape{{8, 8}}, cpu_opts);
     Tensor ref = a_cpu + b_cpu;
 
     Tensor a_gpu = a_cpu.to(gpu_opts.device);
@@ -59,8 +59,8 @@ void test_gpu_matmul() {
     auto cpu_opts = TensorOptions().with_device(Device::CPU);
     auto gpu_opts = TensorOptions().with_device(DeviceIndex(Device::CUDA));
 
-    Tensor a_cpu = Tensor::randn(Shape{{8, 16}}, cpu_opts);
-    Tensor b_cpu = Tensor::randn(Shape{{16, 8}}, cpu_opts);
+    Tensor a_cpu = Tensor::randn<float>(Shape{{8, 16}}, cpu_opts);
+    Tensor b_cpu = Tensor::randn<float>(Shape{{16, 8}}, cpu_opts);
     Tensor ref = OwnTensor::matmul(a_cpu, b_cpu);
 
     Tensor a_gpu = a_cpu.to(gpu_opts.device);
@@ -79,7 +79,7 @@ void test_gpu_vjp_add() {
     auto cpu_opts = TensorOptions().with_device(Device::CPU);
     auto gpu_opts = TensorOptions().with_device(DeviceIndex(Device::CUDA));
 
-    Tensor gy_cpu = Tensor::randn(Shape{{8, 8}}, cpu_opts);
+    Tensor gy_cpu = Tensor::randn<float>(Shape{{8, 8}}, cpu_opts);
     Tensor ga_ref = gy_cpu; // vjp_add just passes gradient through
     Tensor gb_ref = gy_cpu;
 
@@ -102,9 +102,9 @@ void test_gpu_vjp_matmul() {
     auto cpu_opts = TensorOptions().with_device(Device::CPU);
     auto gpu_opts = TensorOptions().with_device(DeviceIndex(Device::CUDA));
 
-    Tensor a_cpu = Tensor::randn(Shape{{8, 16}}, cpu_opts);
-    Tensor b_cpu = Tensor::randn(Shape{{16, 8}}, cpu_opts);
-    Tensor gy_cpu = Tensor::randn(Shape{{8, 8}}, cpu_opts);
+    Tensor a_cpu = Tensor::randn<float>(Shape{{8, 16}}, cpu_opts);
+    Tensor b_cpu = Tensor::randn<float>(Shape{{16, 8}}, cpu_opts);
+    Tensor gy_cpu = Tensor::randn<float>(Shape{{8, 8}}, cpu_opts);
 
     // Reference calculation on CPU
     Tensor ga_ref = OwnTensor::matmul(gy_cpu, b_cpu.t());

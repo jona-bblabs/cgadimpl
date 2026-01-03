@@ -13,9 +13,9 @@
 // //     std::cout << "===== Gradient Checkpointing Test =====\n";
 
 // //     // 1. Create some simple input tensors
-// //     Tensor x_data = Tensor::randn(2, 2, 42);  // small deterministic input
-// //     Tensor W_data = Tensor::randn(2, 2, 123);
-// //     Tensor b_data = Tensor::randn(2, 2, 7);
+// //     Tensor x_data = Tensor::randn<float>(2, 2, 42);  // small deterministic input
+// //     Tensor W_data = Tensor::randn<float>(2, 2, 123);
+// //     Tensor b_data = Tensor::randn<float>(2, 2, 7);
 
 // //     // 2. Wrap them as Values for the computational graph
 // //     Value x = constant(x_data, "x");
@@ -85,13 +85,13 @@
 //     // ------------------------------------------------------------
 //     // 1. Prepare small deterministic tensors
 
-//     Tensor x_data = Tensor::randn(Shape{{2, 4, 42}}, TensorOptions().with_req_grad(true));
-//     Tensor W1_data = Tensor::randn(Shape{{4, 4, 123}}, TensorOptions().with_req_grad(true));
-//     Tensor W2_data = Tensor::randn(Shape{{4, 4, 321}}, TensorOptions().with_req_grad(true));
-//     Tensor W3_data = Tensor::randn(Shape{{4, 2, 999}}, TensorOptions().with_req_grad(true));
-//     Tensor b1_data = Tensor::randn(Shape{{1, 4, 55}}, TensorOptions().with_req_grad(true));
-//     Tensor b2_data = Tensor::randn(Shape{{1, 4, 77}}, TensorOptions().with_req_grad(true));
-//     Tensor b3_data = Tensor::randn(Shape{{1, 2, 88}}, TensorOptions().with_req_grad(true));
+//     Tensor x_data = Tensor::randn<float>(Shape{{2, 4, 42}}, TensorOptions().with_req_grad(true));
+//     Tensor W1_data = Tensor::randn<float>(Shape{{4, 4, 123}}, TensorOptions().with_req_grad(true));
+//     Tensor W2_data = Tensor::randn<float>(Shape{{4, 4, 321}}, TensorOptions().with_req_grad(true));
+//     Tensor W3_data = Tensor::randn<float>(Shape{{4, 2, 999}}, TensorOptions().with_req_grad(true));
+//     Tensor b1_data = Tensor::randn<float>(Shape{{1, 4, 55}}, TensorOptions().with_req_grad(true));
+//     Tensor b2_data = Tensor::randn<float>(Shape{{1, 4, 77}}, TensorOptions().with_req_grad(true));
+//     Tensor b3_data = Tensor::randn<float>(Shape{{1, 2, 88}}, TensorOptions().with_req_grad(true));
 
 
 //     // ------------------------------------------------------------
@@ -185,7 +185,7 @@ int main() {
     nn::Linear fc1(4, 8, Device::CPU);
     nn::Linear fc2(8, 2, Device::CPU);
 
-    Value x = make_tensor(Tensor::randn(Shape{{2, 4}}, TensorOptions().with_req_grad(true)), "x");
+    Value x = make_tensor(Tensor::randn<float>(Shape{{2, 4}}, TensorOptions().with_req_grad(true)), "x");
 
     // Build a graph where the middle activation is checkpointed
     Value h1 = fc1(x);

@@ -17,7 +17,7 @@
 //     // 3. Create some input data directly on the GPU
 //     // --- FIX START ---
 //     // Use the modern factory function with Shape and TensorOptions
-//     Tensor x_tensor = Tensor::randn(Shape{{10, 128}}, TensorOptions().with_device(Device::CUDA));
+//     Tensor x_tensor = Tensor::randn<float>(Shape{{10, 128}}, TensorOptions().with_device(Device::CUDA));
 //     // Use the standard make_tensor factory. 'requires_grad' is false by default.
 //     Value x = make_tensor(x_tensor, "input");
 //     // --- FIX END ---
@@ -36,7 +36,7 @@
 
 //     // You can now proceed with loss calculation and backpropagation
 //     // For example:
-//     // Tensor targets = Tensor::randn(Shape{{10, 64}}, TensorOptions().with_device(Device::CUDA));
+//     // Tensor targets = Tensor::randn<float>(Shape{{10, 64}}, TensorOptions().with_device(Device::CUDA));
 //     // Value loss = mse_loss(y, make_tensor(targets));
 //     // backward(loss);
 
@@ -75,8 +75,8 @@ int main() {
     std::cout << "Model created with " << model.parameters().size() << " parameter tensors.\n\n";
 
     // 3. --- Generate Random Data ---
-    Tensor x_tensor = Tensor::randn(Shape{{batch_size, input_features}}, TensorOptions().with_req_grad(true));
-    Tensor y_tensor = Tensor::randn(Shape{{batch_size, output_features}}, TensorOptions().with_req_grad(true));
+    Tensor x_tensor = Tensor::randn<float>(Shape{{batch_size, input_features}}, TensorOptions().with_req_grad(true));
+    Tensor y_tensor = Tensor::randn<float>(Shape{{batch_size, output_features}}, TensorOptions().with_req_grad(true));
     Value X = make_tensor(x_tensor, "X_data");
     Value Y = make_tensor(y_tensor, "Y_target");
 
