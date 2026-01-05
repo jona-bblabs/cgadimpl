@@ -75,6 +75,8 @@ std::shared_ptr<Node> reci_nodeops(const std::shared_ptr<Node>& a);
 
 std::shared_ptr<Node> linear_nodeops(const  std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c); // fused multiply-add a@b + c
 std::shared_ptr<Node> flatten_nodeops(const std::shared_ptr<Node>& a);
+std::shared_ptr<Node> dropout_nodeops(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b);
+
 std::shared_ptr<Node> moewe_nodeops(const std::shared_ptr<Node>& x, const std::shared_ptr<Node>& w, const std::shared_ptr<Node>& b);
 std::shared_ptr<Node> reluatt_nodeops(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c, const std::shared_ptr<Node>& d);
 std::shared_ptr<Node> sigatt_nodeops(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c, const std::shared_ptr<Node>& d);

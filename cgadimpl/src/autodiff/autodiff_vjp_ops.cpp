@@ -1244,6 +1244,11 @@ void vjp_CategoricalCrossEntropy(Node* n, const Tensor& gy){
 // ===================================================================
 void vjp_Flatten(Node*, const Tensor&){ /* no-op */ }
 
+//===================================================================
+// vjp_Dropout
+// ===================================================================
+void vjp_Dropout(Node*, const Tensor&){ /* no-op */ }
+
 void vjp_Leaf(Node*, const Tensor&){ /* no-op */ }
 
 } // namespace detail

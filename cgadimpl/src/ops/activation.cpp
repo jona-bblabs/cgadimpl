@@ -486,6 +486,33 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
 }
 
 // ===================================================================
+// dropout_nodeops
+// ===================================================================
+
+std::shared_ptr<Node> dropout_nodeops(const std::shared_ptr<Node>& a, // Input X (0, 1)
+                                     const std::shared_ptr<Node>& b) // float p
+{
+    const Tensor& input = a->value;
+    const Tensor& p_tensor = b->value;
+
+    // Extract the float value
+    float p_val = *p_tensor.template data<float>();
+
+    // Tensor y = matmul(input_X, weight_W.t()) + bias_b;
+    Tensor y = OwnTensor::mlp_forward::dropout(input, p_val);
+
+    auto n = std::make_shared<Node>(y, Op::Linear, (a->requires_grad() || b->requires_grad()), "dropout");
+    n->inputs = {a, b};
+
+    // NEW CODE LINES--> DEPENDENCY COUNTER
+    if (a) a->child_grad_count++;
+    if (b) b->child_grad_count++;
+
+    ag::debug::on_node_created(n);
+    return n;
+}
+
+// ===================================================================
 // cosh_nodeops
 // ===================================================================
 

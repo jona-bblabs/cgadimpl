@@ -107,6 +107,10 @@ namespace ag {
         return Value(ag::detail::flatten_nodeops(a.node)); 
     }
 
+    Value dropout(const Value& a, const Value& b){ 
+        return Value(ag::detail::dropout_nodeops(a.node, b.node)); 
+    }
+
         Value moewe(const Value& x, const Value& w, const Value& b){ 
         return Value(ag::detail::moewe_nodeops(x.node, w.node, b.node));
     }

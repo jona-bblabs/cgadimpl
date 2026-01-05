@@ -617,6 +617,14 @@ Tensor jvp_Flatten(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* Z_node = n->inputs[0].get(); // Input
     const Tensor& Z = Z_node->value;
 }
+
+Tensor jvp_Dropout(Node* n, const std::function<const Tensor&(Node*)>& t){
+    Node* Z_node = n->inputs[0].get(); // Input
+    const Tensor& Z = Z_node->value;
+    Node* P_node = n->inputs[1].get(); // p
+    const Tensor& P = P_node->value;
+}
+
 } // namespace detail
 
 
