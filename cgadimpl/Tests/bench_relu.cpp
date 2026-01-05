@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "ad/ops/kernels_api.hpp"  // from cgadimpl/include
+// #include "ad/ops/kernels_api.hpp"  // from cgadimpl/include
 
 // --------------------- reference (your old/normal ReLU) ---------------------
 static void relu_ref(const float* x, float* y, int64_t n) {

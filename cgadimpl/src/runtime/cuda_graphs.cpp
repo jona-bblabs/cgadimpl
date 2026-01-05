@@ -2,7 +2,6 @@
 // In file: cgadimpl/src/runtime/cuda_graphs.cpp
 // ===================================================
 #include "ad/runtime/cuda_graphs.hpp"
-#include "ad/runtime/runtime.hpp" 
 #include "ad/ag_all.hpp"
 #include "tensor.hpp"
 #include <iostream>
@@ -44,7 +43,7 @@ void CudaGraphRunner::begin_capture() {
         return;
     }
     is_capturing_ = true;
-    std::cout << "✅ Capture started successfully" << std::endl;
+    std::cout << "  Capture started successfully" << std::endl;
 }
 
 void CudaGraphRunner::end_capture() {

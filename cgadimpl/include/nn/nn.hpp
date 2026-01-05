@@ -39,6 +39,14 @@ private:
     Value W, b;
 };
 
+// class Flatten : public Module {
+// public:
+//     Flatten(int in_features, int out_features, Device dev = Device::CPU);
+//     Value operator()(Value input) override;
+// private:
+//     Value input;
+// };
+
 class Sequential : public Module {
 public:
     Sequential(const std::vector<Module*>& modules);

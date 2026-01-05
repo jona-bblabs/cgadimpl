@@ -9,7 +9,8 @@
 
 #include "tensor.hpp"
 #include "ad/core/schema.hpp"
-#include "ad/runtime/runtime.hpp"
+// #include "ad/runtime/runtime.hpp"
+#include "ad/runtime/cuda_graphs.hpp"
 
 namespace ag {
 struct Node;

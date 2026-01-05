@@ -2,14 +2,18 @@
 // file: cgadimpl/src/nodeops.cpp
 // =====================
 #include "ad/ops/nodeops.hpp"
-#include "ad/runtime/runtime.hpp"
+// #include "ad/runtime/runtime.hpp"
 // #include "ad/ops/kernels_api.hpp"
+#include "ad/runtime/cuda_graphs.hpp"
 #include <cuda_runtime.h>
 #include "tensor.hpp" 
 #include "ops/UnaryOps/Trigonometry.h" 
 #include <unordered_map>
 #include <cmath> 
 #include <type_traits> 
+#include "mlp/activation.h"
+#include "mlp/layers.h"
+#include "mlp/loss.h"
 
 namespace ag {
 namespace detail {
@@ -123,7 +127,8 @@ std::shared_ptr<Node> relu_nodeops(const std::shared_ptr<Node>& x){
     // --- FIX START ---
     // Replaced the manual kernel dispatch with a device-agnostic expression.
     // The OwnTensor library's operators (+, *, abs) will handle the CPU/GPU logic.
-    Tensor Y = (X + OwnTensor::abs(X, ag::current_stream())) * 0.5f;
+    // Tensor Y = (X + OwnTensor::abs(X, ag::current_stream())) * 0.5f;
+    Tensor Y = OwnTensor::mlp_forward::ReLU(X);
     // --- FIX END ---
     
     auto n = std::make_shared<Node>(Y, Op::Relu, x->requires_grad(), "relu");
@@ -465,7 +470,8 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
     const Tensor& input_X = a->value;
     const Tensor& weight_W = b->value; // Shape is [out, in]
     const Tensor& bias_b = c->value;
-    Tensor y = matmul(input_X, weight_W.t()) + bias_b;
+    // Tensor y = matmul(input_X, weight_W.t()) + bias_b;
+    Tensor y = OwnTensor::mlp_forward::linear(input_X, weight_W, bias_b);
 
     auto n = std::make_shared<Node>(y, Op::Linear, (a->requires_grad() || b->requires_grad() || c->requires_grad()), "linear");
     n->inputs = {a, b, c};
@@ -478,6 +484,7 @@ std::shared_ptr<Node> linear_nodeops(const std::shared_ptr<Node>& a, // Input X
     ag::debug::on_node_created(n);
     return n;
 }
+
 // ===================================================================
 // cosh_nodeops
 // ===================================================================
@@ -775,7 +782,7 @@ std::shared_ptr<Node> mish_nodeops(const std::shared_ptr<Node>& x){
     //  - Call the appropriate backend (CPU or CUDA kernel).
     //  - Get the current stream from the context if it's on the GPU.
     //  - Queue the operation asynchronously on that stream.
-    Tensor y = OwnTensor::trig::tanh(x->value);
+    Tensor y = OwnTensor::mlp_forward::tanh(x->value);
 
     // 2. Wrap the result in a new Node using the correct constructor.
     auto n = std::make_shared<Node>(y, Op::Tanh, x->requires_grad(), "tanh");
@@ -794,7 +801,8 @@ std::shared_ptr<Node> mish_nodeops(const std::shared_ptr<Node>& x){
 std::shared_ptr<Node> sigmoid_nodeops(const std::shared_ptr<Node>& x){
     // Implement sigmoid using OwnTensor ops: 1 / (1 + exp(-x))
     // All operations are stream-aware.
-    Tensor y = 1.0f / (1.0f + OwnTensor::exp(x->value * -1.0f));
+    // Tensor y = 1.0f / (1.0f + OwnTensor::exp(x->value * -1.0f));
+    Tensor y = OwnTensor::mlp_forward::sigmoid(x->value);
 
     auto n = std::make_shared<Node>(y, Op::Sigmoid, x->requires_grad(), "sigmoid"); 
     n->inputs={x}; 
@@ -882,17 +890,18 @@ std::shared_ptr<Node> gelu_nodeops(const std::shared_ptr<Node>& x){
     // All of these operations will correctly use the thread-local stream context.
 
     // Constants for the GELU approximation
-    const float c1 = 0.7978845608f; // sqrt(2.0f / M_PI)
-    const float c2 = 0.044715f;
+    // const float c1 = 0.7978845608f; // sqrt(2.0f / M_PI)
+    // const float c2 = 0.044715f;
 
-    // 1. Calculate x^3
-    Tensor x3 = x->value * x->value * x->value;
+    // // 1. Calculate x^3
+    // Tensor x3 = x->value * x->value * x->value;
     
-    // 2. Calculate the inside of the tanh: u = c1 * (x + c2 * x^3)
-    Tensor u = (x->value + x3 * c2) * c1;
+    // // 2. Calculate the inside of the tanh: u = c1 * (x + c2 * x^3)
+    // Tensor u = (x->value + x3 * c2) * c1;
 
-    // 3. Calculate the full GELU formula: 0.5 * x * (1 + tanh(u))
-    Tensor y = x->value * (1.0f + OwnTensor::trig::tanh(u)) * 0.5f;
+    // // 3. Calculate the full GELU formula: 0.5 * x * (1 + tanh(u))
+    // Tensor y = x->value * (1.0f + OwnTensor::trig::tanh(u)) * 0.5f;
+    Tensor y = OwnTensor::mlp_forward::GeLU(x->value);
     
     auto n = std::make_shared<Node>(y, Op::GELU, x->requires_grad(), "gelu");
     n->inputs={x};
@@ -1241,17 +1250,18 @@ std::shared_ptr<Node> dyntanh_nodeops(const std::shared_ptr<Node>& x, float& a_v
 std::shared_ptr<Node> softmax_row_nodeops(const std::shared_ptr<Node>& z){ 
     // 1. Find the max value along the rows (last dimension) for numerical stability.
     // The `true` for keepdim ensures the result has shape [B, 1] for broadcasting.
-    Tensor max_val = OwnTensor::reduce_max(z->value, {-1}, true);
+    // Tensor max_val = OwnTensor::reduce_max(z->value, {-1}, true);
     
-    // 2. Subtract the max and exponentiate.
-    Tensor z_shifted = z->value - max_val;
-    Tensor exp_z = OwnTensor::exp(z_shifted);
+    // // 2. Subtract the max and exponentiate.
+    // Tensor z_shifted = z->value - max_val;
+    // Tensor exp_z = OwnTensor::exp(z_shifted);
     
-    // 3. Sum the exponents along the rows.
-    Tensor sum_exp_z = OwnTensor::reduce_sum(exp_z, {-1}, true);
+    // // 3. Sum the exponents along the rows.
+    // Tensor sum_exp_z = OwnTensor::reduce_sum(exp_z, {-1}, true);
     
-    // 4. Divide to get the final softmax probabilities.
-    Tensor y = exp_z / sum_exp_z;
+    // // 4. Divide to get the final softmax probabilities.
+    // Tensor y = exp_z / sum_exp_z;
+    Tensor y = OwnTensor::mlp_forward::softmax(z->value);
     
     auto n = std::make_shared<Node>(y, Op::SoftmaxRow, z->requires_grad(), "softmax_row"); 
     n->inputs = {z}; 
@@ -1421,12 +1431,13 @@ std::shared_ptr<Node> kldivergence_nodeops(const std::shared_ptr<Node>& logits, 
 
 std::shared_ptr<Node> mse_loss_nodeops(const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target) {
 
-    Tensor diff = pred->value - target->value;
-    Tensor sq   = diff * diff;
-    // --- THIS IS THE BUG ---
-    // It should be reduce_mean, not reduce_sum. `reduce_mean` correctly
-    // computes the VJP for the mean operation. `sum` has a different VJP.
-    Tensor loss = OwnTensor::reduce_mean(sq); 
+    // Tensor diff = pred->value - target->value;
+    // Tensor sq   = diff * diff;
+    // // --- THIS IS THE BUG ---
+    // // It should be reduce_mean, not reduce_sum. `reduce_mean` correctly
+    // // computes the VJP for the mean operation. `sum` has a different VJP.
+    // Tensor loss = OwnTensor::reduce_mean(sq); 
+    Tensor loss = OwnTensor::mlp_forward::mse_loss(pred->value, target->value);
     // --- END BUG ---
 
     auto n = std::make_shared<Node>(loss, Op::MSELoss, (pred->requires_grad()), "mseloss");
@@ -1444,16 +1455,87 @@ std::shared_ptr<Node> mse_loss_nodeops(const std::shared_ptr<Node>& pred, const 
 // In file: cgadimpl/src/nodeops.cpp (Corrected)
 // ===================================================================
 std::shared_ptr<Node> mae_loss_nodeops(const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target) {
-    Tensor diff = pred->value - target->value;
-    Tensor abs_diff = OwnTensor::abs(diff, ag::current_stream());
-    // The mean of the absolute error
-    Tensor loss = OwnTensor::reduce_mean(abs_diff);
+    // Tensor diff = pred->value - target->value;
+    // Tensor abs_diff = OwnTensor::abs(diff, ag::current_stream());
+    // // The mean of the absolute error
+    // Tensor loss = OwnTensor::reduce_mean(abs_diff);
+    Tensor loss = OwnTensor::mlp_forward::mae_loss(pred->value, target->value);
 
     auto n = std::make_shared<Node>(loss, Op::MAELoss, (pred->requires_grad() || target->requires_grad()), "maeloss");
     n->inputs = {pred, target};
 
     if (pred) pred->child_grad_count++;
     if (target) target->child_grad_count++;
+
+    ag::debug::on_node_created(n);
+    return n;
+}
+
+// =================================================================
+// binary_cross_entropy_nodeops
+// =================================================================
+
+std::shared_ptr<Node> binary_cross_entropy_nodeops(const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target) {
+
+    // Tensor diff = pred->value - target->value;
+    // Tensor sq   = diff * diff;
+    // // --- THIS IS THE BUG ---
+    // // It should be reduce_mean, not reduce_sum. `reduce_mean` correctly
+    // // computes the VJP for the mean operation. `sum` has a different VJP.
+    // Tensor loss = OwnTensor::reduce_mean(sq); 
+    Tensor loss = OwnTensor::mlp_forward::binary_cross_entropy(pred->value, target->value);
+    // --- END BUG ---
+
+    auto n = std::make_shared<Node>(loss, Op::BinaryCrossEntropy, (pred->requires_grad() || target->requires_grad()), "binary_cross_entropy");
+    n->inputs = {pred, target};
+
+    if (pred) pred->child_grad_count++;
+    if (target) target->child_grad_count++;
+
+    ag::debug::on_node_created(n);
+    return n;
+}
+
+// =================================================================
+// categorical_cross_entropy_nodeops
+// =================================================================
+
+std::shared_ptr<Node> categorical_cross_entropy_nodeops(const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target) {
+
+    // Tensor diff = pred->value - target->value;
+    // Tensor sq   = diff * diff;
+    // // --- THIS IS THE BUG ---
+    // // It should be reduce_mean, not reduce_sum. `reduce_mean` correctly
+    // // computes the VJP for the mean operation. `sum` has a different VJP.
+    // Tensor loss = OwnTensor::reduce_mean(sq); 
+    Tensor loss = OwnTensor::mlp_forward::categorical_cross_entropy(pred->value, target->value);
+    // --- END BUG ---
+
+    auto n = std::make_shared<Node>(loss, Op::CategoricalCrossEntropy, (pred->requires_grad() || target->requires_grad()), "categorical_cross_entropy");
+    n->inputs = {pred, target};
+
+    if (pred) pred->child_grad_count++;
+    if (target) target->child_grad_count++;
+
+    ag::debug::on_node_created(n);
+    return n;
+}
+
+// ===================================================================
+// flatten_nodeops
+// ===================================================================
+
+std::shared_ptr<Node> flatten_nodeops(const std::shared_ptr<Node>& a) // Input a
+{
+    const Tensor& input_X = a->value;
+
+    Tensor y = OwnTensor::mlp_forward::flatten(input_X);
+
+    auto n = std::make_shared<Node>(y, Op::Flatten, (a->requires_grad()), "flatten");
+    n->inputs = {a};
+
+    // NEW CODE LINES--> DEPENDENCY COUNTER
+    if (a) a->child_grad_count++;
 
     ag::debug::on_node_created(n);
     return n;

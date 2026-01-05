@@ -3,7 +3,7 @@
 // ====================================================================
 #include "ad/detail/autodiff_ops.hpp"
 #include <stdexcept> // Required for std::runtime_error
-#include "ad/runtime/runtime.hpp"
+#include "ad/runtime/cuda_graphs.hpp"
 #include "ops/UnaryOps/Trigonometry.h"
 
 namespace ag {
@@ -601,10 +601,22 @@ Tensor jvp_KLDivergence(Node* n, const std::function<const Tensor&(Node*)>& t){
     throw std::runtime_error("JVP for KLDivergence not implemented yet!");
 }
 
+Tensor jvp_BinaryCrossEntropy(Node* n, const std::function<const Tensor&(Node*)>& t){
+    throw std::runtime_error("JVP for BinaryCrossEntropy not implemented yet!");
+}
+
+Tensor jvp_CategoricalCrossEntropy(Node* n, const std::function<const Tensor&(Node*)>& t){
+    throw std::runtime_error("JVP for CategoricalCrossEntropy not implemented yet!");
+}
+
 Tensor jvp_Leaf(Node*, const std::function<const Tensor&(Node*)>&){
     return Tensor(Shape{}, TensorOptions{}); // unused
 }
 
+Tensor jvp_Flatten(Node* n, const std::function<const Tensor&(Node*)>& t){
+    Node* Z_node = n->inputs[0].get(); // Input
+    const Tensor& Z = Z_node->value;
+}
 } // namespace detail
 
 

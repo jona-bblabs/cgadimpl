@@ -5,7 +5,7 @@
 
 #include "ad/core/graph.hpp"
 #include "ad/autodiff/checkpoint.hpp"
-#include "ad/ops/kernels_api.hpp"
+// #include "ad/ops/kernels_api.hpp"
 #include "ad/utils/debug.hpp"
 
 #include "ops/TensorOps.h"
@@ -74,6 +74,7 @@ std::shared_ptr<Node> reci_nodeops(const std::shared_ptr<Node>& a);
 // std::shared_ptr<Node> tan_nodeops(const std::shared_ptr<Node>& x);
 
 std::shared_ptr<Node> linear_nodeops(const  std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c); // fused multiply-add a@b + c
+std::shared_ptr<Node> flatten_nodeops(const std::shared_ptr<Node>& a);
 std::shared_ptr<Node> moewe_nodeops(const std::shared_ptr<Node>& x, const std::shared_ptr<Node>& w, const std::shared_ptr<Node>& b);
 std::shared_ptr<Node> reluatt_nodeops(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c, const std::shared_ptr<Node>& d);
 std::shared_ptr<Node> sigatt_nodeops(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c, const std::shared_ptr<Node>& d);
@@ -106,7 +107,8 @@ std::shared_ptr<Node> fmab_nodeops(const  std::shared_ptr<Node>& a, const std::s
 std::shared_ptr<Node> attention_nodeops(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b, const std::shared_ptr<Node>& c, const std::shared_ptr<Node>& d);
 std::shared_ptr<Node> mse_loss_nodeops( const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target);
 std::shared_ptr<Node> mae_loss_nodeops( const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target);
-
+std::shared_ptr<Node> binary_cross_entropy_nodeops( const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target);
+std::shared_ptr<Node> categorical_cross_entropy_nodeops( const std::shared_ptr<Node>& pred, const std::shared_ptr<Node>& target);
 
 } // namespace detail
 } // namespace ag

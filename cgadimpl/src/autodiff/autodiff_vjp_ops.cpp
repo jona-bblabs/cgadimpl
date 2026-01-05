@@ -3,7 +3,8 @@
 // ====================================================================
 
 #include "ad/detail/autodiff_ops.hpp"
-#include "ad/runtime/runtime.hpp"
+// #include "ad/runtime/runtime.hpp"
+#include "ad/runtime/cuda_graphs.hpp"
 #include "ops/UnaryOps/Trigonometry.h"
 #include <cmath>
 #include <stdexcept> // Required for std::runtime_error
@@ -1223,6 +1224,25 @@ void vjp_MAELoss(Node* n, const Tensor& gy){
         Y_node->grad += gy * sign_diff * (-1.0f * inv_N);
     }
 }
+
+// ===================================================================
+// vjp_BinaryCrossEntropy
+// ===================================================================
+void vjp_BinaryCrossEntropy(Node* n, const Tensor& gy){
+    throw std::runtime_error("VJP for BinaryCrossEntropy not implemented yet!");
+}
+
+// ===================================================================
+// vjp_CategoricalCrossEntropy
+// ===================================================================
+void vjp_CategoricalCrossEntropy(Node* n, const Tensor& gy){
+    throw std::runtime_error("VJP for CategoricalCrossEntropy not implemented yet!");
+}
+
+//===================================================================
+// vjp_Flatten
+// ===================================================================
+void vjp_Flatten(Node*, const Tensor&){ /* no-op */ }
 
 void vjp_Leaf(Node*, const Tensor&){ /* no-op */ }
 

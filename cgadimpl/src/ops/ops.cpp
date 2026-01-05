@@ -4,7 +4,8 @@
 #include "ad/ops/ops.hpp"
 #include "ad/ops/nodeops.hpp" // Include the new node-level declarations
 #include "ad/autodiff/inplace.hpp"
-#include "ad/runtime/runtime.hpp"
+// #include "ad/runtime/runtime.hpp"
+#include "ad/runtime/cuda_graphs.hpp"
 
 namespace ag {
     Value inplace_checkpoint(const Value& v) {
@@ -102,6 +103,9 @@ namespace ag {
         return Value(ag::detail::linear_nodeops(a.node, b.node, c.node)); 
     }
 
+    Value flatten(const Value& a){ 
+        return Value(ag::detail::flatten_nodeops(a.node)); 
+    }
 
         Value moewe(const Value& x, const Value& w, const Value& b){ 
         return Value(ag::detail::moewe_nodeops(x.node, w.node, b.node));
@@ -228,11 +232,11 @@ namespace ag {
     }
 
     Value rms(const Value& x){ 
-return Value(ag::detail::rms_nodeops(x.node));
+        return Value(ag::detail::rms_nodeops(x.node));
     }
 
     Value realrms(const Value& x, float g){ 
-return Value(ag::detail::realrms_nodeops(x.node, g));
+        return Value(ag::detail::realrms_nodeops(x.node, g));
     }
 
     Value laynor(const Value& x){ 
@@ -279,14 +283,21 @@ return Value(ag::detail::realrms_nodeops(x.node, g));
     }
 
     Value mse_loss(const Value& pred, const Value& target) {
-    return Value(ag::detail::mse_loss_nodeops(pred.node, target.node));
-}
+        return Value(ag::detail::mse_loss_nodeops(pred.node, target.node));
+    }
 
  
     Value mae_loss(const Value& pred, const Value& target) {
-    return Value(ag::detail::mae_loss_nodeops(pred.node, target.node));
-}
+        return Value(ag::detail::mae_loss_nodeops(pred.node, target.node));
+    }
 
+    Value binary_cross_entropy(const Value& pred, const Value& target) {
+        return Value(ag::detail::binary_cross_entropy_nodeops(pred.node, target.node));
+    }   
+
+    Value categorical_cross_entropy(const Value& pred, const Value& target) {
+        return Value(ag::detail::categorical_cross_entropy_nodeops(pred.node, target.node));
+    }
 //  The implementation of **forward evaluation logic** for a single
 // computational graph node (`Node`) in the autodiff system.
 //

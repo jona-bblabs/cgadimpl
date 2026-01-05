@@ -37,6 +37,18 @@ Value Linear::operator()(Value input) {
     return linear(input, W, b);
 }
 
+// Flatten::Flatten(int in_features, int out_features, Device dev) {
+//     float scale = sqrtf(2.0f / in_features);
+//     auto param_opts = OwnTensor::TensorOptions().with_device(dev).with_req_grad(true);
+//     Tensor input_tensor = OwnTensor::Tensor::randn<float>(Shape{{out_features, in_features}}, param_opts) * scale;
+//     input = make_tensor(input_tensor, "input");
+//     params_.push_back(input);
+// }
+
+// Value Flatten::operator()(Value input) {   
+//     return flatten(input);
+// }
+
 Sequential::Sequential(const std::vector<Module*>& modules) : layers_(modules) {
     for (auto* mod : layers_) {
         for(auto& p : mod->parameters()) {
