@@ -1093,7 +1093,7 @@ void vjp_CategoricalCrossEntropy(Node* n, const Tensor& gy) {
 
     // Gradient formula: - (y_true / y_pred)
     float eps = 1e-7f;
-    Tensor grad_input = gy * (-(y_true / (y_pred + eps)));
+    Tensor grad_input = gy * (-1.0f *(y_true / (y_pred + eps)));
 
     if (Y_pred_node->requires_grad()) {
         std::lock_guard<std::mutex> lock(Y_pred_node->grad_mutex);
