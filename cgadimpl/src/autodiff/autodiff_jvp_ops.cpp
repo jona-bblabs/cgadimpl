@@ -424,9 +424,6 @@ Tensor jvp_LiSHT(Node* n, const std::function<const Tensor&(Node*)>& t){
     return T(t, X) * d_lisht;
 }
 
-// ===================================================================
-// jvp_Transpose
-// ===================================================================
 Tensor jvp_Transpose(Node* n, const std::function<const Tensor&(Node*)>& t){
     // Call the .t() member function on the tangent tensor.
     return T(t, n->inputs[0].get()).t();
@@ -436,9 +433,6 @@ Tensor jvp_SWIGLU(Node* n, const std::function<const Tensor&(Node*)>& t){
     throw std::runtime_error("JVP for SWIGLU not implemented yet!");
 }
 
-// ===================================================================
-// jvp_Mish
-// ===================================================================
 Tensor jvp_Mish(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X_node = n->inputs[0].get();
     const Tensor& x = X_node->value;
@@ -454,9 +448,6 @@ Tensor jvp_Mish(Node* n, const std::function<const Tensor&(Node*)>& t){
     return T(t, X_node) * d_mish;
 }
 
-// ===================================================================
-// jvp_Gaus
-// ===================================================================
 Tensor jvp_Gaus(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
     
@@ -469,9 +460,6 @@ Tensor jvp_LayerNorm(Node* n, const std::function<const Tensor&(Node*)>& t){
     throw std::runtime_error("JVP for LayerNorm not implemented yet!");
 }
 
-// ===================================================================
-// jvp_RMSNorm
-// ===================================================================
 Tensor jvp_RMSNorm(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X_node = n->inputs[0].get();
     const Tensor& x = X_node->value;
@@ -500,25 +488,16 @@ Tensor jvp_RealRMSNorm(Node* n, const std::function<const Tensor&(Node*)>& t){
 }
 
 // ---- reductions ----
-// ===================================================================
-// jvp_Sum
-// ===================================================================
 Tensor jvp_Sum(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
     return OwnTensor::reduce_sum(t(X));
 }
 
-// ===================================================================
-// jvp_RowSum
-// ===================================================================
 Tensor jvp_RowSum(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
     return OwnTensor::reduce_sum(t(X), {-1}, true); // Sum over the last dimension and keep it
 }
 
-// ===================================================================
-// jvp_RowMax
-// ===================================================================
 Tensor jvp_RowMax(Node* n, const std::function<const Tensor&(Node*)>& t){
     // To implement this, we need to know the *index* of the max element in each row.
     // This requires an `argmax` function or comparison operators, which are not 
@@ -526,18 +505,12 @@ Tensor jvp_RowMax(Node* n, const std::function<const Tensor&(Node*)>& t){
     throw std::runtime_error("JVP for RowMax cannot be implemented without argmax or comparison ops in the tensor library.");
 }
 
-// ===================================================================
-// jvp_MeanAll
-// ===================================================================
 Tensor jvp_MeanAll(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* X = n->inputs[0].get();
     return OwnTensor::reduce_mean(t(X));
 }
 
 // ---- softmax / losses ----
-// ===================================================================
-// jvp_SoftmaxRow
-// ===================================================================
 Tensor jvp_SoftmaxRow(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* Z_node = n->inputs[0].get();
     const Tensor& y = n->value; // y = softmax(z) from forward pass
@@ -549,9 +522,6 @@ Tensor jvp_SoftmaxRow(Node* n, const std::function<const Tensor&(Node*)>& t){
     return y * (tZ - dot);
 }
 
-// ===================================================================
-// jvp_LogSumExpRow
-// ===================================================================
 Tensor jvp_LogSumExpRow(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* Z_node = n->inputs[0].get();
     const Tensor& Z = Z_node->value;
@@ -567,9 +537,6 @@ Tensor jvp_LogSumExpRow(Node* n, const std::function<const Tensor&(Node*)>& t){
     return OwnTensor::reduce_sum(y * tZ, {-1}, true);
 }
 
-// ===================================================================
-// jvp_CeWithLogits
-// ===================================================================
 Tensor jvp_CeWithLogits(Node* n, const std::function<const Tensor&(Node*)>& t){
     Node* Z_node = n->inputs[0].get();
     Node* Y_node = n->inputs[1].get();
@@ -601,28 +568,70 @@ Tensor jvp_KLDivergence(Node* n, const std::function<const Tensor&(Node*)>& t){
     throw std::runtime_error("JVP for KLDivergence not implemented yet!");
 }
 
+// ==================================================================================
+// BinaryCrossEntropy
+// ==================================================================================
 Tensor jvp_BinaryCrossEntropy(Node* n, const std::function<const Tensor&(Node*)>& t){
-    throw std::runtime_error("JVP for BinaryCrossEntropy not implemented yet!");
+    Node* Y_pred_node = n->inputs[0].get();
+    Node* Y_true_node = n->inputs[1].get();
+
+    const Tensor& y_pred = Y_pred_node->value;
+    const Tensor& y_true = Y_true_node->value;
+
+    const Tensor& v = t(Y_pred_node);
+
+    // BCE = (ypred - ytrue) / (ypred * (1 - ypred))
+    float eps = 1e-7f;
+    Tensor denominator = (y_pred * (1.0f - y_pred)) + eps;
+    Tensor jvp_val = v * (y_pred - y_true) / denominator;
+
+    return OwnTensor::reduce_mean(jvp_val); 
 }
 
+
+// ==================================================================================
+// CategoricalCrossEntropy
+// ==================================================================================
 Tensor jvp_CategoricalCrossEntropy(Node* n, const std::function<const Tensor&(Node*)>& t){
-    throw std::runtime_error("JVP for CategoricalCrossEntropy not implemented yet!");
+    Node* Y_pred_node = n->inputs[0].get();
+    Node* Y_true_node = n->inputs[1].get();
+
+    const Tensor& y_pred = Y_pred_node->value;
+    const Tensor& y_true = Y_true_node->value;
+    const Tensor& v = t(Y_pred_node);
+
+    // CCE = -sum( (y_true / y_pred) * v )
+    float eps = 1e-7f;
+    Tensor jvp_val = (((y_true / (y_pred + eps)) * v));
+
+    return OwnTensor::reduce_sum(jvp_val, {-1}, false); 
 }
+
 
 Tensor jvp_Leaf(Node*, const std::function<const Tensor&(Node*)>&){
     return Tensor(Shape{}, TensorOptions{}); // unused
 }
 
+// -------- Layers ----------
 Tensor jvp_Flatten(Node* n, const std::function<const Tensor&(Node*)>& t){
-    Node* Z_node = n->inputs[0].get(); // Input
-    const Tensor& Z = Z_node->value;
+    Node* X_node = n->inputs[0].get(); 
+    const Tensor& v = t(X_node);
+
+    // Flatten the tangent to match the output's shape
+    const Shape& target_shape = n->value.shape();
+    
+    return v.reshape(target_shape);
 }
 
 Tensor jvp_Dropout(Node* n, const std::function<const Tensor&(Node*)>& t){
-    Node* Z_node = n->inputs[0].get(); // Input
-    const Tensor& Z = Z_node->value;
-    Node* P_node = n->inputs[1].get(); // p
-    const Tensor& P = P_node->value;
+    Node* X_node = n->inputs[0].get(); // The input tensor
+    const Tensor& v = t(X_node); 
+
+    // retriving the mask used during the forward pass. (important)
+    const Tensor& mask = *n->tape[0];
+
+    // applying the mask to the tangent
+    return v * mask;
 }
 
 } // namespace detail

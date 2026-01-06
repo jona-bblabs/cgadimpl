@@ -14,6 +14,7 @@
 #include "mlp/activation.h"
 #include "mlp/layers.h"
 #include "mlp/loss.h"
+#include "ops/helpers/ConditionalOps.h"
 
 namespace ag {
 namespace detail {
@@ -499,10 +500,29 @@ std::shared_ptr<Node> dropout_nodeops(const std::shared_ptr<Node>& a, // Input X
     float p_val = *p_tensor.template data<float>();
 
     // Tensor y = matmul(input_X, weight_W.t()) + bias_b;
-    Tensor y = OwnTensor::mlp_forward::dropout(input, p_val);
+    Tensor y;
+    Tensor mask_to_save;
 
-    auto n = std::make_shared<Node>(y, Op::Linear, (a->requires_grad() || b->requires_grad()), "dropout");
+    if (p_val <= 0.0f) {
+        y = input;
+        mask_to_save = OwnTensor::Tensor::ones(input.shape(), ag::options(input));
+    } else if (p_val >= 1.0f) {
+        y = OwnTensor::Tensor::zeros(input.shape(), ag::options(input));
+        mask_to_save = y;
+    } else {
+        Tensor rand_mask = OwnTensor::Tensor::rand(input.shape(), ag::options(input), 0.0f, 1.0f);
+        Tensor p_t = OwnTensor::Tensor::full(input.shape(), ag::options(input), p_val);
+        Tensor condition = (rand_mask > p_t).as_type(Dtype::Int32);
+        Tensor keep_mask = OwnTensor::where(condition, 1.0f, 0.0f);
+        float scale_val = 1.0f / (1.0f - p_val);
+        Tensor scale = OwnTensor::Tensor::full(input.shape(), ag::options(input), scale_val);
+        mask_to_save = keep_mask * scale;
+        y = input * mask_to_save;
+    }
+
+    auto n = std::make_shared<Node>(y, Op::Dropout, (a->requires_grad() || b->requires_grad()), "dropout");
     n->inputs = {a, b};
+    n->tape.push_back(std::make_shared<Tensor>(mask_to_save));
 
     // NEW CODE LINES--> DEPENDENCY COUNTER
     if (a) a->child_grad_count++;

@@ -171,6 +171,7 @@ if(true)
   add_ag_test(test_memory_                                    Tests/benchmark_memory_approaches.cpp )
   
   add_ag_test(test_autograd_hooks                             Tests/autograd_hooks_testing/test_hooks.cpp)
+  add_ag_test(test_registered_ops                             Tests/test_registered_ops.cpp)
 
 endif()
 
