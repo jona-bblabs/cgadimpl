@@ -272,6 +272,14 @@ MLIREmitter::emitModule(const Plan& plan) {
                 }
                 break;
 
+            case Op::Sign:
+                if (operands.size() == 1) {
+                    result = builder.create<mlir::nova::SignOp>(
+                        loc, resultType, operands[0]
+                    ).getResult();
+                }
+                break;
+
             case Op::Transpose:
                 if (operands.size() == 1) {
                     // Uses default axes (-1, -2)

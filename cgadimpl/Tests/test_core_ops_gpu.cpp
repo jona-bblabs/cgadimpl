@@ -37,18 +37,18 @@ void test_selected_ops() {
     #endif
     auto opts = TensorOptions().with_device(dev).with_req_grad(true);
 
-    // // 1. MatMul
-    // run_test("MatMul", [&](){
-    //     Value a = make_tensor(Tensor::randn(Shape{{4, 4}}, opts));
-    //     Value b = make_tensor(Tensor::randn(Shape{{4, 4}}, opts));
-    //     Value c = matmul(a, b);
-    //     backward(sum(c));
+    // 1. MatMul
+    run_test("MatMul", [&](){
+        Value a = make_tensor(Tensor::randn<float>(Shape{{4, 4}}, opts));
+        Value b = make_tensor(Tensor::randn<float>(Shape{{4, 4}}, opts));
+        Value c = matmul(a, b);
+        backward(sum(c));
         
-    //     std::cout << "  MatMul Values:\n";
-    //     debug::print_all_values(c);
-    //     std::cout << "  MatMul grads:\n";
-    //     debug::print_all_grads(c);
-    // });
+        std::cout << "  MatMul Values:\n";
+        debug::print_all_values(c);
+        std::cout << "  MatMul grads:\n";
+        debug::print_all_grads(c);
+    });
 
     // // 2. Linear (MatMul + Bias)
     // run_test("Linear", [&](){
@@ -152,22 +152,22 @@ void test_selected_ops() {
 
     // });
 
-    run_test("Sparse Cross Entropy", [&](){
-        Value y = make_tensor(Tensor::ones(Shape{{4, 4}}, opts));
-        Value a = make_tensor(Tensor::randn<float>(Shape{{4, 4}}, opts));
-        Value b = make_tensor(Tensor::randn<float>(Shape{{4, 4}}, opts));
-        Value x = make_tensor(Tensor::randn<float>(Shape{{1, 4}}, opts));
-        Value c = linear(a, b, x);
-        Value l = sparse_cross_entropy_with_logits(c, y);
-        backward(l);
+    // run_test("Sparse Cross Entropy", [&](){
+    //     Value y = make_tensor(Tensor::ones(Shape{{4, 4}}, opts));
+    //     Value a = make_tensor(Tensor::randn<float>(Shape{{4, 4}}, opts));
+    //     Value b = make_tensor(Tensor::randn<float>(Shape{{4, 4}}, opts));
+    //     Value x = make_tensor(Tensor::randn<float>(Shape{{1, 4}}, opts));
+    //     Value c = linear(a, b, x);
+    //     Value l = sparse_cross_entropy_with_logits(c, y);
+    //     backward(l);
         
-        std::cout << "  Sparse Cross Entropy Values:\n";
-        debug::print_all_values(l);
+    //     std::cout << "  Sparse Cross Entropy Values:\n";
+    //     debug::print_all_values(l);
 
-        std::cout << "  Sparse Cross Entropy grads:\n";
-        debug::print_all_grads(l);
+    //     std::cout << "  Sparse Cross Entropy grads:\n";
+    //     debug::print_all_grads(l);
 
-    });
+    // });
 
 }
 

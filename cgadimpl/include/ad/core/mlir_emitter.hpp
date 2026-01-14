@@ -30,6 +30,10 @@ struct TensorMetadata {
     std::vector<int64_t> shape;
     OwnTensor::Dtype dtype;
     OwnTensor::DeviceIndex device;
+
+    TensorMetadata() = default;
+    TensorMetadata(std::vector<int64_t> s, OwnTensor::Dtype d, OwnTensor::DeviceIndex dev = {})
+        : shape(std::move(s)), dtype(d), device(dev) {}
 };
 
 // Signature of compiled function
